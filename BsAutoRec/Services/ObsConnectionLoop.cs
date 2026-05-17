@@ -58,8 +58,9 @@ namespace BsAutoRec.Services
 				try
 				{
 					socket.Options.AddSubProtocol("obswebsocket.json");
-					var uri = new Uri(settingsService.Current.ObsWebSocketUrl);
-					logger.LogDebug("Connecting to OBS WebSocket. Uri: {Uri}", uri);
+					var uriText = settingsService.Current.ObsWebSocketUrl;
+					var uri = new Uri(uriText);
+					logger.LogDebug("Connecting to OBS WebSocket. Uri: {Uri}", LogValueSanitizer.MaskUriUserInfo(uriText));
 					await socket.ConnectAsync(uri, cancellationToken);
 
 					await IdentifyAsync(socket, cancellationToken);

@@ -53,8 +53,9 @@ namespace BsAutoRec.Services
 
 				try
 				{
-					var uri = new Uri(settingsService.Current.BsWebSocketUrl);
-					logger.LogDebug("Connecting to BS WebSocket. Uri: {Uri}", uri);
+					var uriText = settingsService.Current.BsWebSocketUrl;
+					var uri = new Uri(uriText);
+					logger.LogDebug("Connecting to BS WebSocket. Uri: {Uri}", LogValueSanitizer.MaskUriUserInfo(uriText));
 					await webSocket.ConnectAsync(uri, cancellationToken);
 
 					connected = true;
