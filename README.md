@@ -1,2 +1,2 @@
 # BsAutoRec
-Automatic OBS recording control
+Automatic OBS recording control for BS
