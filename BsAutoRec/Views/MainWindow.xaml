@@ -6,6 +6,7 @@
 		xmlns:models="clr-namespace:BsAutoRec.Models"
 		mc:Ignorable="d"
 		Title="BsAutoRec"
+		Icon="pack://application:,,,/Assets/icon.ico"
 		Width="900"
 		Height="720"
 		MinWidth="820"
