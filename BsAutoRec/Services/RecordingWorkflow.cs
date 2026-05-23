@@ -67,7 +67,7 @@ namespace BsAutoRec.Services
 		public async Task<RecordingFinalizeResult> FinalizeAsync(
 				PlaySession session,
 				string reason,
-				string levelEndType,
+				LevelEndType levelEndType,
 				CancellationToken cancellationToken,
 				RecordingWorkflowCallbacks callbacks)
 		{
@@ -78,9 +78,9 @@ namespace BsAutoRec.Services
 				session.HandlingMode);
 			callbacks.SetRuntimeState(AppRuntimeState.StoppingRecording);
 			callbacks.SetMessage(reason);
-			callbacks.SetLevelEndType(levelEndType);
+			callbacks.SetLevelEndType(levelEndType.ToString());
 
-			var stopDelaySeconds = Math.Clamp(settingsService.Current.RecordingStopDelaySeconds, 0.0, 3.0);
+			var stopDelaySeconds = CalculateStopDelaySeconds(settingsService.Current, levelEndType);
 			if (stopDelaySeconds > 0.0)
 			{
 				logger.LogInformation("Recording stop delay started. DelaySeconds: {DelaySeconds}", stopDelaySeconds);
@@ -163,6 +163,18 @@ namespace BsAutoRec.Services
 				callbacks.AddRecentMessage($"リネーム失敗: {exception.Message}");
 				return null;
 			}
+		}
+
+		/// <summary>
+		/// Calculates the final recording stop delay for the session result.
+		/// </summary>
+		private static double CalculateStopDelaySeconds(AppSettings settings, LevelEndType levelEndType)
+		{
+			var baseDelaySeconds = Math.Clamp(settings.RecordingStopDelaySeconds, 0.0, 3.0);
+			var failedAdditionalDelaySeconds = levelEndType == LevelEndType.Failed
+				? Math.Clamp(settings.FailedRecordingStopAdditionalDelaySeconds, 0.0, 10.0)
+				: 0.0;
+			return baseDelaySeconds + failedAdditionalDelaySeconds;
 		}
 	}
 

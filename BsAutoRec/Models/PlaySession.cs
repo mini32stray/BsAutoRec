@@ -10,7 +10,7 @@ namespace BsAutoRec.Models
 		DateTimeOffset StartedAt,
 		BsStatusSnapshot LatestSnapshot,
 		SessionHandlingMode HandlingMode,
-		string LevelEndType,
+		LevelEndType LevelEndType,
 		DateTimeOffset? EndedAt,
 		string? OriginalRecordingPath,
 		string? RenamedRecordingPath)

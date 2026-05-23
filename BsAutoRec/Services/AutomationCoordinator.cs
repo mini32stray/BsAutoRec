@@ -341,7 +341,7 @@ namespace BsAutoRec.Services
 					return;
 				case BsEventKind.Failed:
 					logger.LogDebug("Event received. {Kind}", message.Kind);
-					await FinalizeCurrentSessionAsync("曲の失敗を検出しました。", "Failed");
+					await FinalizeCurrentSessionAsync("曲の失敗を検出しました。", LevelEndType.Failed);
 					return;
 				case BsEventKind.Menu:
 					logger.LogDebug("Event received. {Kind}", message.Kind);
@@ -392,7 +392,7 @@ namespace BsAutoRec.Services
 			{
 				logger.LogInformation("BS recovered after the tracked song ended. Finalizing current session as Quit.");
 				CancelRecoveryTimer();
-				await FinalizeCurrentSessionAsync("BS 再接続時に曲終了を確認しました。", "Quit");
+				await FinalizeCurrentSessionAsync("BS 再接続時に曲終了を確認しました。", LevelEndType.Quit);
 				return;
 			}
 
@@ -430,13 +430,13 @@ namespace BsAutoRec.Services
 				StartedAt: DateTimeOffset.Now,
 				LatestSnapshot: snapshot,
 				HandlingMode: SessionHandlingMode.RenameAndStop,
-				LevelEndType: "Unknown",
+				LevelEndType: LevelEndType.Unknown,
 				EndedAt: null,
 				OriginalRecordingPath: null,
 				RenamedRecordingPath: null);
 			RuntimeState.Value = AppRuntimeState.Playing;
 			MessageText.Value = $"曲開始を検出しました: {snapshot.SongName}";
-			LevelEndTypeText.Value = "Unknown";
+			LevelEndTypeText.Value = LevelEndType.Unknown.ToString();
 			AddRecentMessage($"曲開始: {snapshot.SongName}");
 			logger.LogInformation(
 				"Song started. SongName: {SongName}; DifficultyName: {DifficultyName}; Characteristic: {Characteristic}; SongHash: {SongHash}",
@@ -465,7 +465,7 @@ namespace BsAutoRec.Services
 
 			_currentSession = _currentSession.WithSnapshot(snapshot);
 			logger.LogInformation("BS menu event ended the current session. Finalizing as Quit.");
-			await FinalizeCurrentSessionAsync("メニューへの遷移を検出しました。", "Quit");
+			await FinalizeCurrentSessionAsync("メニューへの遷移を検出しました。", LevelEndType.Quit);
 		}
 
 		/// <summary>
@@ -539,7 +539,7 @@ namespace BsAutoRec.Services
 		/// <summary>
 		/// Stops recording and renames the output for the current session.
 		/// </summary>
-		private async Task FinalizeCurrentSessionAsync(string reason, string levelEndType)
+		private async Task FinalizeCurrentSessionAsync(string reason, LevelEndType levelEndType)
 		{
 			if (_currentSession is null)
 			{
@@ -598,7 +598,7 @@ namespace BsAutoRec.Services
 				return;
 			}
 
-			await FinalizeCurrentSessionAsync("BS 復旧待機がタイムアウトしたため録画を停止します。", "Quit");
+			await FinalizeCurrentSessionAsync("BS 復旧待機がタイムアウトしたため録画を停止します。", LevelEndType.Quit);
 		}
 
 		/// <summary>
@@ -657,7 +657,7 @@ namespace BsAutoRec.Services
 		/// </summary>
 		private void AdoptStopOnlySession(BsStatusSnapshot snapshot, string message)
 		{
-			var levelEndType = snapshot.SoftFailed ? "SoftFailed" : "Unknown";
+			var levelEndType = snapshot.SoftFailed ? LevelEndType.SoftFailed : LevelEndType.Unknown;
 			_hasObservedRecordingForCurrentSession = false;
 			_currentSession = new PlaySession(
 				StartedAt: DateTimeOffset.Now,
@@ -669,7 +669,7 @@ namespace BsAutoRec.Services
 				RenamedRecordingPath: null);
 			RuntimeState.Value = AppRuntimeState.Playing;
 			MessageText.Value = message;
-			LevelEndTypeText.Value = levelEndType;
+			LevelEndTypeText.Value = levelEndType.ToString();
 			AddRecentMessage(message);
 			logger.LogInformation(
 				"Stop-only session adopted. LevelEndType: {LevelEndType}; SongName: {SongName}; SongHash: {SongHash}",
@@ -724,16 +724,16 @@ namespace BsAutoRec.Services
 				return;
 			}
 
-			if (_currentSession.LevelEndType == "SoftFailed")
+			if (_currentSession.LevelEndType == LevelEndType.SoftFailed)
 			{
 				return;
 			}
 
 			_currentSession = _currentSession with
 			{
-				LevelEndType = "SoftFailed",
+				LevelEndType = LevelEndType.SoftFailed,
 			};
-			LevelEndTypeText.Value = "SoftFailed";
+			LevelEndTypeText.Value = LevelEndType.SoftFailed.ToString();
 			MessageText.Value = "ソフトフェイルを検出しました。";
 			AddRecentMessage("ソフトフェイルを検出しました。");
 			logger.LogInformation(
@@ -745,9 +745,9 @@ namespace BsAutoRec.Services
 		/// <summary>
 		/// Gets the final level end type for a completed song.
 		/// </summary>
-		private string GetCompletedLevelEndType()
+		private LevelEndType GetCompletedLevelEndType()
 		{
-			return _currentSession?.LevelEndType == "SoftFailed" ? "SoftFailed" : "Cleared";
+			return _currentSession?.LevelEndType == LevelEndType.SoftFailed ? LevelEndType.SoftFailed : LevelEndType.Cleared;
 		}
 
 		/// <summary>

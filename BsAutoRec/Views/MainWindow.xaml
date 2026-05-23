@@ -187,6 +187,7 @@
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
 					</Grid.RowDefinitions>
 
 					<TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="BS WebSocket URL" />
@@ -199,22 +200,29 @@
 					<TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,8" Text="{Binding RecoveryWaitSeconds.Value, UpdateSourceTrigger=PropertyChanged}" />
 					<TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="録画停止ディレイ秒数" />
 					<TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,8" Text="{Binding RecordingStopDelaySeconds.Value, UpdateSourceTrigger=PropertyChanged}" />
-					<TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="録画出力フォルダ" />
-                    <Grid
-                        Grid.Row="5"
+					<TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="フェイル時追加ディレイ秒数" />
+					<TextBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,8" Text="{Binding FailedRecordingStopAdditionalDelaySeconds.Value, UpdateSourceTrigger=PropertyChanged}" />
+					<TextBlock Grid.Row="6" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="録画出力フォルダ" />
+					<Grid
+                        Grid.Row="6"
 						Grid.Column="1"
                         Grid.ColumnSpan="2"
 						Margin="0,0,0,8">
-                        <TextBox Text="{Binding RecordingOutputDirectory.Value, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,33,0" />
-                        <Button Width="30"
+                        <TextBox Text="{Binding RecordingOutputDirectory.Value, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,103,0" />
+                        <Button Width="50"
 								HorizontalAlignment="Right"
+								Margin="0,0,48,0"
 								Command="{Binding OutputDirectoryFolderCommand}"
-								Content="..." />
+								Content="Select..." />
+                        <Button Width="40"
+								HorizontalAlignment="Right"
+								Command="{Binding OpenOutputDirectoryCommand}"
+								Content="開く" />
                     </Grid>
-                    <TextBlock Grid.Row="6" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="ファイル名テンプレート" />
-                    <TextBox Grid.Row="6"
+					<TextBlock Grid.Row="7" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="ファイル名テンプレート" />
+					<TextBox Grid.Row="7"
 							 Grid.Column="1"
-                             Grid.ColumnSpan="2"
+							 Grid.ColumnSpan="2"
 							 Margin="0,0,0,8"
 							 Text="{Binding RenameTemplate.Value, UpdateSourceTrigger=PropertyChanged}"
 							 TextWrapping="Wrap"

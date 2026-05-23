@@ -47,7 +47,7 @@ namespace BsAutoRec.Services
 				"LevelAuthorName" => snapshot.LevelAuthorName,
 				"BeatsPerMinute" => snapshot.BeatsPerMinute?.ToString(format ?? "0.##", CultureInfo.InvariantCulture) ?? string.Empty,
 				"SongHash" => snapshot.SongHash,
-				"LevelEndType" => session.LevelEndType,
+				"LevelEndType" => session.LevelEndType.ToString(),
 				"ScorePercent" => snapshot.ScorePercent?.ToString(format ?? "0.00", CultureInfo.InvariantCulture) ?? string.Empty,
 				_ => string.Empty,
 			};

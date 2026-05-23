@@ -14,6 +14,8 @@ namespace BsAutoRec.Models
 
 		public double RecordingStopDelaySeconds { get; set; } = 0.0;
 
+		public double FailedRecordingStopAdditionalDelaySeconds { get; set; } = 0.0;
+
 		public string RecordingOutputDirectory { get; set; } = string.Empty;
 
 		public string RenameTemplate { get; set; } = "{CurrentTime:yyyyMMdd-HHmmss}_{SongName}_{LevelAuthorName}_{DifficultyName}_{ScorePercent}_{LevelEndType}";

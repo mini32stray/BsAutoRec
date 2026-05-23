@@ -3,6 +3,7 @@ using BsAutoRec.Models;
 using BsAutoRec.Services;
 using Microsoft.Extensions.Logging;
 using Reactive.Bindings;
+using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Controls.Primitives;
@@ -61,6 +62,8 @@ namespace BsAutoRec.ViewModels
 
 		public ReactiveProperty<double> RecordingStopDelaySeconds { get; }
 
+		public ReactiveProperty<double> FailedRecordingStopAdditionalDelaySeconds { get; }
+
 		public ReactiveProperty<string> RecordingOutputDirectory { get; }
 
 		public ReactiveProperty<string> RenameTemplate { get; }
@@ -76,6 +79,8 @@ namespace BsAutoRec.ViewModels
 		public ReactiveCommand ReloadSettingsCommand { get; }
 
 		public ReactiveCommand OutputDirectoryFolderCommand { get; }
+
+		public ReactiveCommand OpenOutputDirectoryCommand { get; }
 
 		public MainViewModel(SettingsService settingsService, BsClient bsClient, ObsClient obsClient, AutomationCoordinator automationCoordinator, ILogger<MainViewModel> logger)
 		{
@@ -127,6 +132,7 @@ namespace BsAutoRec.ViewModels
 			ObsPassword = new ReactiveProperty<string>(_settingsService.Current.ObsPassword).AddTo(_disposables);
 			RecoveryWaitSeconds = new ReactiveProperty<int>(_settingsService.Current.RecoveryWaitSeconds).AddTo(_disposables);
 			RecordingStopDelaySeconds = new ReactiveProperty<double>(_settingsService.Current.RecordingStopDelaySeconds).AddTo(_disposables);
+			FailedRecordingStopAdditionalDelaySeconds = new ReactiveProperty<double>(_settingsService.Current.FailedRecordingStopAdditionalDelaySeconds).AddTo(_disposables);
 			RecordingOutputDirectory = new ReactiveProperty<string>(_settingsService.Current.RecordingOutputDirectory).AddTo(_disposables);
 			RenameTemplate = new ReactiveProperty<string>(_settingsService.Current.RenameTemplate).AddTo(_disposables);
 			IsSettingsExpanded = new ReactiveProperty<bool>(true).AddTo(_disposables);
@@ -170,6 +176,9 @@ namespace BsAutoRec.ViewModels
 						RecordingOutputDirectory.Value = dialog.FolderName;
 					}
 				}, _disposables.Add)
+				.AddTo(_disposables);
+			OpenOutputDirectoryCommand = new ReactiveCommand()
+				.WithSubscribe(OpenOutputDirectory, _disposables.Add)
 				.AddTo(_disposables);
 
 			if (_settingsService.Current.AutoStart)
@@ -228,6 +237,7 @@ namespace BsAutoRec.ViewModels
 				ObsPassword = ObsPassword.Value,
 				RecoveryWaitSeconds = Math.Max(1, RecoveryWaitSeconds.Value),
 				RecordingStopDelaySeconds = Math.Clamp(RecordingStopDelaySeconds.Value, 0.0, 3.0),
+				FailedRecordingStopAdditionalDelaySeconds = Math.Clamp(FailedRecordingStopAdditionalDelaySeconds.Value, 0.0, 10.0),
 				RecordingOutputDirectory = RecordingOutputDirectory.Value.Trim(),
 				RenameTemplate = RenameTemplate.Value.Trim(),
 			};
@@ -250,8 +260,38 @@ namespace BsAutoRec.ViewModels
 			ObsPassword.Value = settings.ObsPassword;
 			RecoveryWaitSeconds.Value = settings.RecoveryWaitSeconds;
 			RecordingStopDelaySeconds.Value = Math.Clamp(settings.RecordingStopDelaySeconds, 0.0, 3.0);
+			FailedRecordingStopAdditionalDelaySeconds.Value = Math.Clamp(settings.FailedRecordingStopAdditionalDelaySeconds, 0.0, 10.0);
 			RecordingOutputDirectory.Value = settings.RecordingOutputDirectory;
 			RenameTemplate.Value = settings.RenameTemplate;
+		}
+
+		private void OpenOutputDirectory()
+		{
+			var directoryPath = RecordingOutputDirectory.Value.Trim();
+			if (string.IsNullOrWhiteSpace(directoryPath))
+			{
+				_logger.LogInformation("Open output directory skipped because output directory is empty.");
+				return;
+			}
+			if (!Directory.Exists(directoryPath))
+			{
+				_logger.LogInformation($"Open output directory skipped because output directory not exists. -> {directoryPath}");
+				return;
+			}
+
+			try
+			{
+				Directory.CreateDirectory(directoryPath);
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = directoryPath,
+					UseShellExecute = true,
+				});
+			}
+			catch (Exception exception)
+			{
+				_logger.LogError(exception, "Failed to open output directory. DirectoryPath: {DirectoryPath}", directoryPath);
+			}
 		}
 
 		private ReactiveProperty<string> CreateViewProperty(IObservable<string> source)
